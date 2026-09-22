@@ -41,7 +41,28 @@ def extract_names(filename):
   ['2006', 'Aaliyah 91', Aaron 57', 'Abagail 895', ' ...]
   """
   # +++your code here+++
-  return
+  names = []
+  with open(filename, 'r', encoding='utf-8') as f:
+    text = f.read()
+
+  year_match = re.search(r'Popularity\s+in\s+(\d\d\d\d)', text)
+  if not year_match:
+    sys.stderr.write('Couldn\'t find the year!\n')
+    sys.exit(1)
+  year = year_match.group(1)
+  names.append(year)
+
+  tuples = re.findall(r'<td>(\d+)</td><td>(\w+)</td><td>(\w+)</td>', text)
+  names_to_rank = {}
+  for rank, boyname, girlname in tuples:
+    if boyname not in names_to_rank:
+      names_to_rank[boyname] = rank
+    if girlname not in names_to_rank:
+      names_to_rank[girlname] = rank
+
+  for name in sorted(names_to_rank.keys()):
+    names.append(name + ' ' + names_to_rank[name])
+  return names
 
 
 def main():
@@ -63,6 +84,15 @@ def main():
   # +++your code here+++
   # For each filename, get the names, then either print the text output
   # or write it to a summary file
+  for filename in args:
+    names_list = extract_names(filename)
+    text = '\n'.join(names_list) + '\n'
+    if summary:
+      summary_filename = filename + '.summary'
+      with open(summary_filename, 'w', encoding='utf-8') as summary_file:
+        summary_file.write(text)
+    else:
+      print(text, end='')
 
 if __name__ == '__main__':
   main()
