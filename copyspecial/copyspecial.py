@@ -18,6 +18,38 @@ import subprocess
 # +++your code here+++
 # Write functions and modify main() to call them
 
+def get_special_paths(dirname):
+  """Given a directory name, returns a list of absolute paths 
+  of special files (containing __w__) in that directory."""
+  result = []
+  filenames = os.listdir(dirname)
+  for filename in filenames:
+    if re.search(r'__\w+__', filename):
+      fullpath = os.path.abspath(os.path.join(dirname, filename))
+      result.append(fullpath)
+  return result
+
+def copy_to(paths, todir):
+  """Given a list of file paths, copies those files into todir,
+  creating todir if it does not already exist."""
+  if not os.path.exists(todir):
+    os.makedirs(todir)
+  for path in paths:
+    shutil.copy(path, todir)
+
+def zip_to(paths, zippath):
+  """Given a list of file paths, zips those files up into zippath 
+  using an external zip command."""
+  cmd = ['zip', '-j', zippath] + paths
+  print("Command I'm going to do:", " ".join(cmd))
+  
+  process = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+  if process.returncode != 0:
+    if process.stdout:
+      print(process.stdout.decode('utf-8'))
+    if process.stderr:
+      print(process.stderr.decode('utf-8'), file=sys.stderr)
+    sys.exit(process.returncode)
 
 
 def main():
@@ -50,6 +82,17 @@ def main():
 
   # +++your code here+++
   # Call your functions
+  paths = []
+  for dirname in args:
+    paths.extend(get_special_paths(dirname))
+
+  if todir:
+    copy_to(paths, todir)
+  elif tozip:
+    zip_to(paths, tozip)
+  else:
+    for path in paths:
+      print(path)
 
 if __name__ == '__main__':
   main()
